@@ -27,7 +27,7 @@ import kotlin.random.Random
 object Yiri : KotlinPlugin(JvmPluginDescription(
     id = "cc.wybxc.yiri",
     name = "Yiri",
-    version = "0.1.0",
+    version = "0.2.0",
 ) {
     author("Wybxc")
 }) {
@@ -36,6 +36,7 @@ object Yiri : KotlinPlugin(JvmPluginDescription(
         val talkServerHost by value("localhost")
         val talkServerPort by value(6001)
         val accept by value(-1.5)
+        val triggerProbability by value(0.04)
     }
 
     private val client = HttpClient(CIO) {
@@ -94,7 +95,9 @@ object Yiri : KotlinPlugin(JvmPluginDescription(
         globalEventChannel().subscribeAlways<GroupMessageEvent>(priority = EventPriority.HIGHEST) call@{
             val atMe = message.findIsInstance<At>()?.run { target == bot.id } ?: false
             val messageText = messageToText(message)
-            val reply = (atMe || Random.nextFloat() > 0.96) && messageText.isNotEmpty() && !messageText.startsWith('/')
+            var reply = atMe || Random.nextFloat() > 1 - Config.triggerProbability
+            reply = reply && messageText.isNotEmpty() && !messageText.startsWith('/')
+
             if (atMe && messageText.isEmpty()) {
                 subject.sendMessage("你在叫我吗？")
                 return@call
